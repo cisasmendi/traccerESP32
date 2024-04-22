@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-
+//https://tlfong01.blog/2020/03/22/sim7600-at-command-tutorial/
 #define BAUD 115200
 #define RXD2 16
 #define TXD2 17

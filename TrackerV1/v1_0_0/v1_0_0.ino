@@ -1,132 +1,61 @@
-/**************************************************************
- *
- * For this example, you need to install PubSubClient library:
- *   https://github.com/knolleary/pubsubclient
- *   or from http://librarymanager/all#PubSubClient
- *
- * TinyGSM Getting Started guide:
- *   https://tiny.cc/tinygsm-readme
- *
- * For more MQTT examples, see PubSubClient library
- *
- **************************************************************
- * This example connects to HiveMQ's showcase broker.
- *
- * You can quickly test sending and receiving messages from the HiveMQ webclient
- * available at http://www.hivemq.com/demos/websocket-client/.
- *
- * Subscribe to the topic GsmClientTest/ledStatus
- * Publish "toggle" to the topic GsmClientTest/led and the LED on your board
- * should toggle and you should see a new message published to
- * GsmClientTest/ledStatus with the newest LED status.
- *
- **************************************************************/
+#include <ToneESP32.h>
+#include <SoftwareSerial.h>
+#include <PubSubClient.h>
 
-// Select your modem:
-// #define TINY_GSM_MODEM_SIM800
-// #define TINY_GSM_MODEM_SIM808
-// #define TINY_GSM_MODEM_SIM868
-// #define TINY_GSM_MODEM_SIM900
-// #define TINY_GSM_MODEM_SIM7000
-// #define TINY_GSM_MODEM_SIM7000SSL
-// #define TINY_GSM_MODEM_SIM7080
-// #define TINY_GSM_MODEM_SIM5360
-#define TINY_GSM_MODEM_SIM7600
-// #define TINY_GSM_MODEM_UBLOX
-// #define TINY_GSM_MODEM_SARAR4
-// #define TINY_GSM_MODEM_M95
-// #define TINY_GSM_MODEM_BG96
-// #define TINY_GSM_MODEM_A6
-// #define TINY_GSM_MODEM_A7
-// #define TINY_GSM_MODEM_M590
-// #define TINY_GSM_MODEM_MC60
-// #define TINY_GSM_MODEM_MC60E
-// #define TINY_GSM_MODEM_ESP8266
-// #define TINY_GSM_MODEM_XBEE
-// #define TINY_GSM_MODEM_SEQUANS_MONARCH
+// config GPS module
+#define RX_GPS 14
+#define TX_GPS 12
 
-// Set serial for debug console (to the Serial Monitor, default speed 115200)
-#define SerialMon Serial
+// Definir el número de pin para el LED
+#define PIN_LED 2 // led interno
+#define vel 200
+#define PIN_LED_B 27
+#define PIN_LED_R 26
 
-// #include <SoftwareSerial.h>
-// SoftwareSerial Serial2(16, 17);  // RX, TX
+// config buzzer
+#define ALARM 18
+#define BUZZER_CHANNEL 0
+ToneESP32 buzzer(ALARM, BUZZER_CHANNEL);
+
+// config enabler SIM7600 and GPS
+#define MOSFET_SIM 19
+#define ON_OFF_GPS 22
+
+// config sensor hall
+#define PIN_SENSOR_HALL 23
+
+// config motor
+#define PIN_MOTOR_ABRE 33
+#define PIN_MOTOR_CIERRA 32
+#define FIN_ABIERTO 4
+#define FIN_CERRADO 5
+
+// config module SIM7600 and serial
 #define BAUD 115200
 #define RXD2 16
 #define TXD2 17
-
-#define PIN_LED 2 // Definir el número de pin para el LED interno
-
-#define RX_GPS 14
-#define TX_GPS 12
-#define PIN_LED_B 27
-#define PIN_LED_R 26
-#define PIN_MOTOR_ABRE 33   // Definir el número de pin D25
-#define PIN_MOTOR_CIERRA 32 // Definir el número de pin D25
-#define MOSFET_SIM 19       // Definir el número de pin D32
-#define ALARM 18            // Definir el número de pin D43
-#define ON_OFF_GPS 22
-#define PIN_SENSOR_HALL 23 // Definir el número de pin para el sensor de efecto Hall
-#define FIN_ABIERTO 4
-#define FIN_CERRADO 5
-#define vel 200
-
-// See all AT commands, if wanted
-// #define DUMP_AT_COMMANDS
-
-// Define the serial console for debug prints, if needed
-#define TINY_GSM_DEBUG SerialMon
-
-// Range to attempt to autobaud
-// NOTE:  DO NOT AUTOBAUD in production code.  Once you've established
-// communication, set a fixed baud rate using modem.setBaud(#).
-#define GSM_AUTOBAUD_MIN 9600
-#define GSM_AUTOBAUD_MAX 115200
-
-// Add a reception delay, if needed.
-// This may be needed for a fast processor at a slow baud rate.
-// #define TINY_GSM_YIELD() { delay(2); }
-
-// Define how you're planning to connect to the internet.
-// This is only needed for this example, not in other code.
-#define TINY_GSM_USE_GPRS true
-#define TINY_GSM_USE_WIFI false
-
+#define TINY_GSM_MODEM_SIM7600
+#include <TinyGsmClient.h>
 // set GSM PIN, if any
 #define GSM_PIN ""
-
 // Your GPRS credentials, if any
 const char apn[] = "igprs.claro.com.ar";
 const char gprsUser[] = "";
 const char gprsPass[] = "";
 
-// Your WiFi connection credentials, if applicable
-const char wifiSSID[] = "Cisasmendi88.4G";
-const char wifiPass[] = "Tiziana2285";
-
 // MQTT details
-const char *broker = "broker.hivemq.com";
+const char *broker = "64.226.117.238";
 const int port = 1883;
 
-const char *topicLed = "qazwsxGsmClientTest/led";
-const char *topicInit = "qazwsxGsmClientTest/init";
-const char *topicLedStatus = "qazwsxGsmClientTest/ledStatus";
+const char *topicLed = "GsmClientTest/led";
+const char *topicInit = "GsmClientTest/init";
+const char *topicLedStatus = "GsmClientTest/ledStatus";
 
-#include <TinyGsmClient.h>
-#include <PubSubClient.h>
+// See all AT commands, if wanted
+// #define DUMP_AT_COMMANDS
 
-// Just in case someone defined the wrong thing..
-#if TINY_GSM_USE_GPRS && not defined TINY_GSM_MODEM_HAS_GPRS
-#undef TINY_GSM_USE_GPRS
-#undef TINY_GSM_USE_WIFI
-#define TINY_GSM_USE_GPRS false
-#define TINY_GSM_USE_WIFI true
-#endif
-#if TINY_GSM_USE_WIFI && not defined TINY_GSM_MODEM_HAS_WIFI
-#undef TINY_GSM_USE_GPRS
-#undef TINY_GSM_USE_WIFI
-#define TINY_GSM_USE_GPRS true
-#define TINY_GSM_USE_WIFI false
-#endif
+// Set serial for debug console (to the Serial Monitor, default speed 115200)
+#define SerialMon Serial
 
 #ifdef DUMP_AT_COMMANDS
 #include <StreamDebugger.h>
@@ -137,9 +66,7 @@ TinyGsm modem(Serial2);
 #endif
 TinyGsmClient client(modem);
 PubSubClient mqtt(client);
-
 int ledStatus = LOW;
-
 uint32_t lastReconnectAttempt = 0;
 
 void mqttCallback(char *topic, byte *payload, unsigned int len)
@@ -153,7 +80,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len)
   if (String(topic) == topicLed)
   {
     ledStatus = !ledStatus;
-    digitalWrite(PIN_LED, ledStatus);
+    digitalWrite(PIN_LED_R, ledStatus);
     mqtt.publish(topicLedStatus, ledStatus ? "1" : "0");
   }
 }
@@ -177,18 +104,8 @@ boolean mqttConnect()
   return mqtt.connected();
 }
 
-void parpadear()
-{
-  // Parpadear el LED conectado al pin 2
-  digitalWrite(PIN_LED, HIGH); // Encender el LED
-  delay(vel);                  // Esperar medio segundo
-  digitalWrite(PIN_LED, LOW);  // Apagar el LED
-  delay(vel);                  // Esperar medio segundo
-}
-
 void setup()
 {
-
   pinMode(PIN_LED, OUTPUT); // Configurar el pin del LED como salida
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
@@ -198,11 +115,11 @@ void setup()
   pinMode(ALARM, OUTPUT);
   pinMode(ON_OFF_GPS, OUTPUT);
   pinMode(PIN_SENSOR_HALL, INPUT); // Configurar el pin del sensor de efecto Hall como entrada
-  pinMode(FIN_ABIERTO, INPUT);
-  pinMode(FIN_CERRADO, INPUT);
-  digitalWrite(PIN_LED_R, HIGH);
-  digitalWrite(PIN_LED_B, HIGH);
+  pinMode(FIN_ABIERTO, INPUT);     // Configurar el pin del switch como entrada
+  pinMode(FIN_CERRADO, INPUT);     // Configurar el pin del switch como entrada
 
+  digitalWrite(PIN_LED_R, HIGH); // Encender el LED
+  digitalWrite(PIN_LED_B, HIGH); // Encender el LED
   digitalWrite(PIN_MOTOR_ABRE, LOW);
   digitalWrite(PIN_MOTOR_CIERRA, LOW);
   digitalWrite(MOSFET_SIM, HIGH);
@@ -234,20 +151,7 @@ void setup()
     modem.simUnlock(GSM_PIN);
   }
 #endif
-
-#if TINY_GSM_USE_WIFI
-  // Wifi connection parameters must be set before waiting for the network
-  SerialMon.print(F("Setting SSID/password..."));
-  if (!modem.networkConnect(wifiSSID, wifiPass))
-  {
-    SerialMon.println(" fail wifissid");
-    delay(10000);
-    return;
-  }
-  SerialMon.println(" success");
-#endif
-
-#if TINY_GSM_USE_GPRS && defined TINY_GSM_MODEM_XBEE
+#if TINY_GSM_USE_GPRS
   // The XBee must run the gprsConnect function BEFORE waiting for network!
   modem.gprsConnect(apn, gprsUser, gprsPass);
 #endif
@@ -289,10 +193,24 @@ void setup()
   mqtt.setCallback(mqttCallback);
 }
 
+void parpadear()
+{
+  // Parpadear el LED conectado al pin 2
+  digitalWrite(PIN_LED, HIGH); // Encender el LED
+  delay(vel);                  // Esperar medio segundo
+  digitalWrite(PIN_LED, LOW);  // Apagar el LED
+  delay(vel);                  // Esperar medio segundo
+}
+
+
 void loop()
 {
   parpadear();
-  // Make sure we're still registered on the network
+  loopGPRS();
+}
+
+void loopGPRS()
+{
   if (!modem.isNetworkConnected())
   {
     SerialMon.println("Network disconnected");
@@ -347,3 +265,20 @@ void loop()
 
   mqtt.loop();
 }
+
+
+
+
+// Leer el valor del sensor de efecto Hall
+// int hallValue = digitalRead(PIN_SENSOR_HALL);
+// int hallValue = digitalRead(FIN_ABIERTO);
+// int hallValue = digitalRead(FIN_CERRADO);
+/*   if (hallValue == HIGH) {
+    digitalWrite(PIN_MOTOR_CIERRA, LOW); // Apagar el LED
+      digitalWrite(PIN_MOTOR_ABRE, HIGH); // Apagar el LED
+  } else {
+    digitalWrite(PIN_MOTOR_CIERRA, HIGH); // Encender el LED
+      digitalWrite(PIN_MOTOR_ABRE, LOW); // Apagar el LED
+  }*/
+
+//  buzzer.tone(NOTE_C4, 250);
