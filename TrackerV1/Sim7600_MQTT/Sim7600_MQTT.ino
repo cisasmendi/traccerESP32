@@ -2,45 +2,75 @@
 Developed by Nandu, Anandu, Unnikrishnan 
 Company: Elementz Engineers Guild Pvt Ltd
 */
-#include<SoftwareSerial.h>
-SoftwareSerial mySerial(3,2);
-#define sw 5
-#define led 7
+
+#define sw 4
+#define led 2
+
+#define RXD2 16
+#define TXD2 17
+#define MOSFET_SIM 19 
+#define ON_OFF_GPS 22
+
 int flag = 1;
 int flag1 = 0;
 int state=0;
 String Publish = "led/publish"; //Publish Topic
 String Subscribe = "led/subscribe"; //Subscribe Topic
 
+bool reply = false;
 void setup() 
 {
-  Serial.begin(9600);
-  mySerial.begin(9600);
-  pinMode(sw, INPUT_PULLUP);
+
+ pinMode(MOSFET_SIM, OUTPUT); 
+ pinMode(ON_OFF_GPS,OUTPUT);
+ digitalWrite(MOSFET_SIM, HIGH);
+ digitalWrite(ON_OFF_GPS, HIGH);
+  
+  Serial.begin(115200);
+  Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+  
+  pinMode(sw, INPUT);
   pinMode(led, OUTPUT);
   digitalWrite(led, LOW);
+  int i = 10;
+  Serial.println("\nTesting Modem Response...\n");
+  Serial.println("****");
+   while (i) {
+        Serial2.println("AT");
+        delay(500);
+        if (Serial2.available()) {
+            String r = Serial2.readString();
+            Serial.println(r);
+            if ( r.indexOf("OK") >= 0 ) {
+                reply = true;
+                break;;
+            }
+        }
+        delay(500);
+        i--;
+    }
 
   //AT Commands for setting up the client id and Server
   //Need to be executed once -- Open serial terminal doe seeing the debug messages
   Serial.println("Connecting To Server........");
-  mySerial.println("ATE0");
+  Serial2.println("ATE0");
   delay(2000);
-  mySerial.println("AT+CMQTTSTART"); //Establishing MQTT Connection
+  Serial2.println("AT+CMQTTSTART"); //Establishing MQTT Connection
   delay(2000); 
-  mySerial.println("AT+CMQTTACCQ=0,\"elementz/123\""); //Client ID - change this for each client as this need to be unique
+  Serial2.println("AT+CMQTTACCQ=0,\"elementz/123\""); //Client ID - change this for each client as this need to be unique
   delay(2000);
-  mySerial.println("AT+CMQTTCONNECT=0,\"tcp://test.mosquitto.org:1883\",90,1"); //MQTT Server Name for connecting this client
+  Serial2.println("AT+CMQTTCONNECT=0,\"tcp://64.226.117.238:1883\",90,1"); //MQTT Server Name for connecting this client
   delay(2000);
 
   //SUBSCRIBE MESSAGE
   //Need to be executed once
-  mySerial.println("AT+CMQTTSUBTOPIC=0,9,1"); //AT Command for Setting up the Subscribe Topic Name 
+  Serial2.println("AT+CMQTTSUBTOPIC=0,9,1"); //AT Command for Setting up the Subscribe Topic Name 
   delay(2000);
-  mySerial.println(Subscribe); //Topic Name
+  Serial2.println(Subscribe); //Topic Name
   delay(2000);
-  mySerial.println("AT+CMQTTSUB=0,4,1,1"); //Length of message
+  Serial2.println("AT+CMQTTSUB=0,4,1,1"); //Length of message
   delay(2000);
-  mySerial.println("HAII"); //message
+  Serial2.println("HAII"); //message
   delay(2000);
   Serial.println("Done");
 }
@@ -57,15 +87,15 @@ void loop()
       flag1 = 1;
       digitalWrite(led, HIGH);
       Serial.println("Publishing Message: LED ON");
-      mySerial.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
+      Serial2.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
       delay(1000);
-      mySerial.println(Publish); //Topic Name
+      Serial2.println(Publish); //Topic Name
       delay(1000);
-      mySerial.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
+      Serial2.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
       delay(1000);
-      mySerial.println("a"); //Payload message
+      Serial2.println("a"); //Payload message
       delay(1000);
-      mySerial.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
+      Serial2.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
       delay(1000);
     }
     else if(digitalRead(sw) == 0 && flag1 == 1)
@@ -73,15 +103,15 @@ void loop()
       flag1 = 0;
      digitalWrite(led, LOW); 
       Serial.println("Publishing Message: LED OFF");
-      mySerial.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
+      Serial2.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
       delay(1000);
-      mySerial.println(Publish); //Topic Name
+      Serial2.println(Publish); //Topic Name
       delay(1000);
-      mySerial.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
+      Serial2.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
       delay(1000);
-      mySerial.println("b"); //Payload message
+      Serial2.println("b"); //Payload message
       delay(1000);
-      mySerial.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
+      Serial2.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
       delay(1000);
     }
   }
@@ -93,15 +123,15 @@ void loop()
       flag1 = 1;
       digitalWrite(led, LOW);
       Serial.println("Publishing Message: LED OFF");
-      mySerial.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
+      Serial2.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
       delay(1000);
-      mySerial.println(Publish); //Topic Name
+      Serial2.println(Publish); //Topic Name
       delay(1000);
-      mySerial.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
+      Serial2.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
       delay(1000);
-      mySerial.println("b"); //Payload message
+      Serial2.println("b"); //Payload message
       delay(1000);
-      mySerial.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
+      Serial2.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
       delay(1000);
     }
     else if(digitalRead(sw) == 0 && flag1 == 1)
@@ -109,24 +139,24 @@ void loop()
       flag1 = 0;
       digitalWrite(led,HIGH); 
       Serial.println("Publishing Message: LED ON");
-      mySerial.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
+      Serial2.println("AT+CMQTTTOPIC=0,8"); //AT Command for Setting up the Publish Topic Name
       delay(1000);
-      mySerial.println(Publish); //Topic Name
+      Serial2.println(Publish); //Topic Name
       delay(1000);
-      mySerial.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
+      Serial2.println("AT+CMQTTPAYLOAD=0,1"); //Payload length
       delay(1000);
-      mySerial.println("a"); //Payload message
+      Serial2.println("a"); //Payload message
       delay(1000);
-      mySerial.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
+      Serial2.println("AT+CMQTTPUB=0,1,60"); //Acknowledgment
       delay(1000);
     }
   }
 
  //Receiving MODEM Response
-  while(mySerial.available()>0)
+  while(Serial2.available()>0)
   {
     delay(10);
-    a = mySerial.readString();
+    a = Serial2.readString();
     if(flag==0)
     {
       //Serial.println(a);

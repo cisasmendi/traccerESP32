@@ -104,12 +104,12 @@ const char wifiSSID[] = "Cisasmendi88.4G";
 const char wifiPass[] = "Tiziana2285";
 
 // MQTT details
-const char *broker = "broker.hivemq.com";
+const char *broker = "64.226.117.238";
 const int port = 1883;
 
-const char *topicLed = "qazwsxGsmClientTest/led";
-const char *topicInit = "qazwsxGsmClientTest/init";
-const char *topicLedStatus = "qazwsxGsmClientTest/ledStatus";
+const char *topicLed = "GsmClientTest/led";
+const char *topicInit = "GsmClientTest/init";
+const char *topicLedStatus = "GsmClientTest/ledStatus";
 
 #include <TinyGsmClient.h>
 #include <PubSubClient.h>
@@ -186,6 +186,64 @@ void parpadear()
   delay(vel);                  // Esperar medio segundo
 }
 
+bool reply = false;
+
+void testConect(){ 
+  int i = 10;
+  SerialMon.println("\nTesting Modem Response...\n");
+  SerialMon.println("****");
+   while (i) {
+        Serial2.println("AT");
+        delay(500);
+        if (Serial2.available()) {
+            String r = Serial2.readString();
+            SerialMon.println(r);
+            if ( r.indexOf("OK") >= 0 ) {
+                reply = true;
+                break;;
+            }
+        }
+        delay(500);
+        i--;
+    }
+}
+
+
+void testNetwork(){
+ if (!modem.isNetworkConnected())
+  {
+    SerialMon.println("Network disconnected");
+    testConect();    
+    if (!modem.waitForNetwork(180000L, true))
+    {
+      SerialMon.println(" fail");
+      delay(10000);
+      return;
+    }
+    if (modem.isNetworkConnected())
+    {
+      SerialMon.println("Network re-connected");
+    }
+    // and make sure GPRS/EPS is still connected
+    if (!modem.isGprsConnected())
+    {
+      SerialMon.println("GPRS disconnected!");
+      SerialMon.print(F("Connecting to "));
+      SerialMon.print(apn);
+      if (!modem.gprsConnect(apn, gprsUser, gprsPass))
+      {
+        SerialMon.println(" fail");
+        delay(10000);
+        return;
+      }
+      if (modem.isGprsConnected())
+      {
+        SerialMon.println("GPRS reconnected");
+      }
+    }
+  }
+}
+
 void setup()
 {
 
@@ -215,44 +273,15 @@ void setup()
   // Set GSM module baud rate
   // TinyGsmAutoBaud(Serial2, GSM_AUTOBAUD_MIN, GSM_AUTOBAUD_MAX);
   Serial2.begin(BAUD, SERIAL_8N1, RXD2, TXD2);
-  delay(6000);
-  // Restart takes quite some time
-  // To skip it, call init() instead of restart()
+  delay(6000);   
   SerialMon.println("Initializing modem...");
-  // modem.restart();
   modem.init();
-  delay(3000);
+  testConect(); 
   String modemInfo = modem.getModemInfo();
   SerialMon.print("Modem Info: ");
   SerialMon.println(modemInfo);
-
-  // Unlock your SIM card with a PIN if needed
-#if TINY_GSM_USE_GPRS
-  if (GSM_PIN && modem.getSimStatus() != 3)
-  {
-    SerialMon.println("gsm_pin");
-    modem.simUnlock(GSM_PIN);
-  }
-#endif
-
-#if TINY_GSM_USE_WIFI
-  // Wifi connection parameters must be set before waiting for the network
-  SerialMon.print(F("Setting SSID/password..."));
-  if (!modem.networkConnect(wifiSSID, wifiPass))
-  {
-    SerialMon.println(" fail wifissid");
-    delay(10000);
-    return;
-  }
-  SerialMon.println(" success");
-#endif
-
-#if TINY_GSM_USE_GPRS && defined TINY_GSM_MODEM_XBEE
-  // The XBee must run the gprsConnect function BEFORE waiting for network!
-  modem.gprsConnect(apn, gprsUser, gprsPass);
-#endif
-
-  SerialMon.print("Waiting for network...");
+  modem.gprsConnect(apn, gprsUser, gprsPass);  
+  SerialMon.print("Waiting for network...");  
   if (!modem.waitForNetwork())
   {
     SerialMon.println(" fail");
@@ -260,29 +289,11 @@ void setup()
     return;
   }
   SerialMon.println(" success");
-
+  
   if (modem.isNetworkConnected())
   {
     SerialMon.println("Network connected");
   }
-
-#if TINY_GSM_USE_GPRS
-  // GPRS connection parameters are usually set after network registration
-  SerialMon.print(F("Connecting to "));
-  SerialMon.print(apn);
-  if (!modem.gprsConnect(apn, gprsUser, gprsPass))
-  {
-    SerialMon.println(" fail");
-    delay(10000);
-    return;
-  }
-  SerialMon.println(" success");
-
-  if (modem.isGprsConnected())
-  {
-    SerialMon.println("GPRS connected");
-  }
-#endif
 
   // MQTT Broker setup
   mqtt.setServer(broker, port);
@@ -293,41 +304,7 @@ void loop()
 {
   parpadear();
   // Make sure we're still registered on the network
-  if (!modem.isNetworkConnected())
-  {
-    SerialMon.println("Network disconnected");
-    if (!modem.waitForNetwork(180000L, true))
-    {
-      SerialMon.println(" fail");
-      delay(10000);
-      return;
-    }
-    if (modem.isNetworkConnected())
-    {
-      SerialMon.println("Network re-connected");
-    }
-
-#if TINY_GSM_USE_GPRS
-    // and make sure GPRS/EPS is still connected
-    if (!modem.isGprsConnected())
-    {
-      SerialMon.println("GPRS disconnected!");
-      SerialMon.print(F("Connecting to "));
-      SerialMon.print(apn);
-      if (!modem.gprsConnect(apn, gprsUser, gprsPass))
-      {
-        SerialMon.println(" fail");
-        delay(10000);
-        return;
-      }
-      if (modem.isGprsConnected())
-      {
-        SerialMon.println("GPRS reconnected");
-      }
-    }
-#endif
-  }
-
+  testNetwork(); 
   if (!mqtt.connected())
   {
     SerialMon.println("=== MQTT NOT CONNECTED ===");

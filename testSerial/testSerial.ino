@@ -58,27 +58,29 @@ void setup()
 
 
   Serial.begin(BAUD);
- Serial2.begin(BAUD, SERIAL_8N1, RXD2, TXD2);
-
+  Serial2.begin(BAUD, SERIAL_8N1, RXD2, TXD2);
   Serial.print("Ready @ ");
   Serial.print(BAUD);
   Serial.println(" baud");
 }
 
+String completeCommand = "";
 
 void loop()
 {
   parpadear();
-  while (Serial.available() > 0)
-  {
-    char c = Serial.read();
-
-    if (c == '*')
-        Serial2.write(0x1A);  
-      else
-        Serial2.write(c);
+  if (Serial.available()){
+    char received = Serial.read();
+    if (received != '\n') {
+      completeCommand += received;  // Agregar el carácter al comando
+    } else {
+      // Cuando recibimos '\n', asumimos que el comando está completo
+      Serial2.println(completeCommand);  // Envía el comando completo    
+      completeCommand = "";  // Limpia la cadena para el próximo comando
+      }
   }
 
   while (Serial2.available() > 0)
     Serial.write(Serial2.read());
+   
 }
