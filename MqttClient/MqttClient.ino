@@ -29,7 +29,9 @@
 const char apn[] = "igprs.claro.com.ar";
 const char gprsUser[] = "";
 const char gprsPass[] = "";
-
+//const char apn[] = "wap.grps.unifon.com.ar ";
+//const char gprsUser[] = "wap ";
+//const char gprsPass[] = "wap ";
 // MQTT details
 const char *broker = "64.226.117.238";
 const int port = 1883;
@@ -69,107 +71,129 @@ boolean mqttConnect()
   Serial.print("Connecting to ");
   Serial.print(broker);
   // Connect to MQTT Broker
-  boolean status = mqtt.connect("GsmClientTest");
-  // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
+  
+  boolean status = mqtt.connect("GsmClientTest"); // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
   if (status == false)
   {
     Serial.println(" fail");
     return false;
   }
   Serial.println(" success");
-  mqtt.publish(topicInit, "GsmClientTest started");
+  mqtt.publish(topicInit, "GsmClientTest re-started");
   mqtt.subscribe(topicLed);
   return mqtt.connected();
 }
 
-void parpadear()
-{
-  // Parpadear el LED conectado al pin 2
-  digitalWrite(PIN_LED, HIGH); // Encender el LED
-  delay(vel);                  // Esperar medio segundo
-  digitalWrite(PIN_LED, LOW);  // Apagar el LED
-  delay(vel);                  // Esperar medio segundo
+unsigned long previousMillis = 0;  // Variable para almacenar la última vez que el LED cambió de estado
+int ledState = LOW;                // Variable para almacenar el estado actual del LED
+// Función para parpadear sin bloquear
+void parpadear() {
+  unsigned long currentMillis = millis();
+  // Comprueba si ha pasado suficiente tiempo para cambiar el estado del LED
+  if (currentMillis - previousMillis >= vel) {
+    // Guarda el momento del cambio de estado
+    previousMillis = currentMillis;
+    // Cambia el estado del LED de ON a OFF o viceversa
+    if (ledState == LOW) {
+      ledState = HIGH;
+    } else {
+      ledState = LOW;
+    }
+    // Establece el nuevo estado del LED
+    digitalWrite(PIN_LED_B, ledState);
+  }
 }
-
 bool reply = false;
-
-void testConect()
-{
-  int i = 10;
-  Serial.println("\nTesting Modem Response...");
-  while (i)
-  {
-    Serial2.println("AT");
-    delay(500);
-    if (Serial2.available())
-    {
-      String r = Serial2.readString();
-      //Serial.println(r);
-      if (r.indexOf("OK") >= 0)
-      {
-        Serial.println(r);
-        reply = true;
-        break;
-        ;
-      }
+void testModem() {
+    Serial.println("\nTesting Modem Response...");
+    for (int attempts = 0; attempts < 10; attempts++) {
+        Serial2.println("AT");
+        
+        unsigned long startTime = millis();
+        while (millis() - startTime < 1000) { // Espera hasta 1 segundo por una respuesta
+            if (Serial2.available()) {
+                String response = Serial2.readString();
+                if (response.indexOf("OK") >= 0) {
+                    Serial.println(response);
+                    reply = true;
+                    return; // Salir inmediatamente si la respuesta es correcta
+                }
+            }
+        }
     }
-    delay(500);
-    i--;
-  }
+    Serial.println("Modem did not respond.");
 }
 
-void testNetwork()
-{
-  if (!modem.isNetworkConnected())
-  {
-    Serial.println("Network disconnected");
-    testConect();
-    if (!modem.waitForNetwork(1000L, true))
-    {
-      Serial.println(" fail");
-      return;
-    } 
-    if (!modem.isGprsConnected())
-    {
-      Serial.println("GPRS disconnected!");
-      Serial.print(F("Connecting to "));
-      Serial.print(apn);
-      if (!modem.gprsConnect(apn, gprsUser, gprsPass))
-      {
-        Serial.println(" fail");    
-        return;
-      }
-      if (modem.isGprsConnected())
-      {
-        Serial.println("GPRS reconnected");
-      }
+
+void testNetwork() {
+    if (modem.isNetworkConnected()) {
+        // Si ya está conectado a la red, verificamos GPRS directamente.
+        if (!modem.isGprsConnected()) {
+            Serial.println("GPRS disconnected!");
+            reconnectGPRS();  // Llamamos a una función específica para reconectar GPRS.
+        }
+    } else {
+        Serial.println("Network disconnected");
+        testModem();
+        
+        if (modem.waitForNetwork(1000L, true)) {  // Aumentado el tiempo para un mejor manejo de la red.
+            Serial.println("Network reconnected");
+            if (!modem.isGprsConnected()) {
+                Serial.println("GPRS disconnected!");
+                reconnectGPRS();  // Reutilizamos la misma función para la reconexión de GPRS.
+            }
+        } else {
+            Serial.println("Network reconnection failed");
+        }
     }
-  }
 }
 
-void testMQTT()
-{
-  if (!mqtt.connected())
-  {
-    Serial.println("=== MQTT NOT CONNECTED ===");
-    // Reconnect every 10 seconds
-    uint32_t t = millis();
-    if (t - lastReconnectAttempt > 3000L)
-    {
-      lastReconnectAttempt = t;
-      if (mqttConnect())
-      {
-        lastReconnectAttempt = 0;
-      }
-    }  
-    return;
-  }
+void reconnectGPRS() {
+    Serial.print(F("Connecting to "));
+    Serial.println(apn);
+    if (modem.gprsConnect(apn, gprsUser, gprsPass)) {
+        Serial.println("GPRS reconnected successfully");
+    } else {
+        Serial.println("GPRS reconnection failed");
+    }
 }
 
-void setup()
-{
+void testMQTT() {
+    // Primero, verificar si ya estamos conectados a MQTT
+    if (!mqtt.connected()) {
+      //  Serial.println("MQTT already connected.");     
+    Serial.println("=== MQTT NOT CONNECTED ===");    
+    // Intentar reconectar a MQTT
+    uint32_t currentTime = millis();
+    if (currentTime - lastReconnectAttempt > 3000L) {
+        lastReconnectAttempt = currentTime;  // Actualizar el tiempo del último intento
+        if (mqttConnect()) {
+            Serial.println("MQTT reconnected successfully.");
+            lastReconnectAttempt = 0;  // Resetear el temporizador si la conexión fue exitosa
+        } else {
+            Serial.println("MQTT reconnection failed.");
+            // Si la reconexión a MQTT falla, comprobamos la comunicación con el modem
+            testModem();
+            if (reply) {
+                // Si el modem responde, verificamos y reparamos la conexión de red
+                testNetwork();
+                // Intentamos reconectar a MQTT una vez más después de verificar la red y el modem
+                if (mqttConnect()) {
+                    Serial.println("MQTT reconnected successfully after network check.");
+                    lastReconnectAttempt = 0;  // Resetear el temporizador si la conexión fue exitosa
+                } else {
+                    Serial.println("MQTT reconnection failed after network check.");
+                }
+            } else {
+                Serial.println("Modem not responding, cannot check network.");
+            }
+        }
+    }}
+}
 
-  pinMode(PIN_LED, OUTPUT); // Configurar el pin del LED como salida
+
+void setVar(){
+ pinMode(PIN_LED, OUTPUT); // Configurar el pin del LED como salida
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
   pinMode(PIN_MOTOR_ABRE, OUTPUT);
@@ -182,11 +206,16 @@ void setup()
   pinMode(FIN_CERRADO, INPUT);
   digitalWrite(PIN_LED_R, HIGH);
   digitalWrite(PIN_LED_B, HIGH);
-
   digitalWrite(PIN_MOTOR_ABRE, LOW);
   digitalWrite(PIN_MOTOR_CIERRA, LOW);
   digitalWrite(MOSFET_SIM, HIGH);
-  digitalWrite(ON_OFF_GPS, HIGH);
+  digitalWrite(ON_OFF_GPS, HIGH);  
+}
+
+void setup()
+{
+
+ setVar();
 
   // Set console baud rate
   Serial.begin(115200);
@@ -197,8 +226,20 @@ void setup()
   Serial2.begin(BAUD, SERIAL_8N1, RXD2, TXD2);
   delay(6000);
   Serial.println("Initializing modem...");
+ 
+  // Variable to store the MAC address
+  uint8_t baseMac[6];
+  // Get the MAC address of the Bluetooth interface
+  esp_read_mac(baseMac, ESP_MAC_BT);
+  Serial.print("Bluetooth MAC: ");
+  for (int i = 0; i < 5; i++) {
+    Serial.printf("%02X:", baseMac[i]);
+  }
+  Serial.printf("%02X\n", baseMac[5]); 
+
+  
   modem.init();
-  testConect();
+  testModem();
   String modemInfo = modem.getModemInfo();
   Serial.print("Modem Info: ");
   Serial.println(modemInfo);
@@ -223,8 +264,34 @@ void setup()
 
 void loop()
 {
-  parpadear();
-  testNetwork();
-  testMQTT();
-  mqtt.loop();
+  int hallValue = digitalRead(PIN_SENSOR_HALL); 
+  if (hallValue == LOW) {
+    digitalWrite(MOSFET_SIM, LOW);
+    digitalWrite(ON_OFF_GPS, LOW);
+    digitalWrite(PIN_LED,HIGH);
+  } else {
+    digitalWrite(MOSFET_SIM, HIGH);
+    digitalWrite(ON_OFF_GPS, HIGH);
+    testMQTT();
+    mqtt.loop();
+    parpadear();
+    digitalWrite(PIN_LED,LOW);
+  }  
+  
 }
+
+
+
+// Leer el valor del sensor de efecto Hall
+// int hallValue = digitalRead(PIN_SENSOR_HALL);
+// int hallValue = digitalRead(FIN_ABIERTO);
+// int hallValue = digitalRead(FIN_CERRADO);
+/*   if (hallValue == HIGH) {
+    digitalWrite(PIN_MOTOR_CIERRA, LOW); // Apagar el LED
+      digitalWrite(PIN_MOTOR_ABRE, HIGH); // Apagar el LED
+  } else {
+    digitalWrite(PIN_MOTOR_CIERRA, HIGH); // Encender el LED
+      digitalWrite(PIN_MOTOR_ABRE, LOW); // Apagar el LED
+  }*/
+
+//  buzzer.tone(NOTE_C4, 250);
