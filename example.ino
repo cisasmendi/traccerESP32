@@ -21,10 +21,6 @@
 #define FIN_CERRADO 5
 #define vel 200
 
-//#define TINY_GSM_DEBUG Serial
-
-#define GSM_AUTOBAUD_MIN 9600
-#define GSM_AUTOBAUD_MAX 115200
 // Your GPRS credentials, if any
 const char apn[] = "igprs.claro.com.ar";
 const char gprsUser[] = "";
@@ -103,6 +99,7 @@ void parpadear() {
     digitalWrite(PIN_LED_B, ledState);
   }
 }
+
 bool reply = false;
 void testModem() {
     Serial.println("\nTesting Modem Response...");
@@ -123,7 +120,6 @@ void testModem() {
     }
     Serial.println("Modem did not respond.");
 }
-
 
 void testNetwork() {
     if (modem.isNetworkConnected()) {
@@ -193,7 +189,7 @@ void testMQTT() {
 
 
 void setVar(){
- pinMode(PIN_LED, OUTPUT); // Configurar el pin del LED como salida
+  pinMode(PIN_LED, OUTPUT); // Configurar el pin del LED como salida
   pinMode(PIN_LED_R, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
   pinMode(PIN_MOTOR_ABRE, OUTPUT);
@@ -227,7 +223,8 @@ void setup()
   delay(6000);
   Serial.println("Initializing modem...");
  
-  // Variable to store the MAC address
+ 
+ // Variable to store the MAC address
   uint8_t baseMac[6];
   // Get the MAC address of the Bluetooth interface
   esp_read_mac(baseMac, ESP_MAC_BT);
@@ -236,15 +233,15 @@ void setup()
     Serial.printf("%02X:", baseMac[i]);
   }
   Serial.printf("%02X\n", baseMac[5]); 
-
-  
-  modem.init();
+ 
+  modem.init(); 
   testModem();
   String modemInfo = modem.getModemInfo();
   Serial.print("Modem Info: ");
   Serial.println(modemInfo);
   modem.gprsConnect(apn, gprsUser, gprsPass);
   Serial.print("Waiting for network...");
+
   if (!modem.waitForNetwork())
   {
     Serial.println(" fail");

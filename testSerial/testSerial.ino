@@ -58,7 +58,7 @@ void setup()
 
 
   Serial.begin(BAUD);
-  Serial2.begin(BAUD, SERIAL_8N1, RXD2, TXD2);
+  Serial2.begin(BAUD, SERIAL_8N1, RXD2_SIMX, TXD2_SIMX);
   Serial.print("Ready @ ");
   Serial.print(BAUD);
   Serial.println(" baud");

@@ -27,7 +27,7 @@ void setup()
  digitalWrite(ON_OFF_GPS, HIGH);
   
   Serial.begin(115200);
-  Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+  Serial2.begin(115200, SERIAL_8N1, RXD2_SIMX, TXD2_SIMX);
   
   pinMode(sw, INPUT);
   pinMode(led, OUTPUT);

@@ -14,6 +14,7 @@
 const char* ssid = "Cisasmendi88.4G"; //ssid of your wifi
 const char* password = "Tiziana2285"; //password of your wifi
 TinyGPSPlus gps; 
+
 SoftwareSerial ss(RX_GPS, TX_GPS);
 float latitude , longitude;
 int year , month , date, hour , minute , second;
