@@ -3,16 +3,17 @@
 #include <PubSubClient.h>
 #include "ControllerGps.h"
 #include "ControllerAux.h"
+#include "ControllerWiFi.h"
 
 // MQTT details
 const char *broker = "64.226.117.238";
 const int port = 1883;
 const char *sistem = "bikesistem";
-String topicLedStr = String(sistem) + "/led";
+String topicStr = String(sistem) + "/"+getBluetoothMac();
 String topicInitStr = String(sistem) + "/init";
-String topicStatusStr = String(sistem) + "/status";
+String topicStatusStr = String(sistem) + "/"+getBluetoothMac()+"/st"; //bikesistem/8:d1:f9:d0:31:ee/st
 
-const char *topicLed = topicLedStr.c_str();
+const char *topicLed = topicStr.c_str();
 const char *topicInit = topicInitStr.c_str();
 const char *topicStatus = topicStatusStr.c_str();
 
@@ -23,19 +24,18 @@ int Status = LOW;
 boolean lost = true;
 
 void mqttCallback(char *topic, byte *payload, unsigned int len)
-{
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("]: ");
-  Serial.write(payload, len);
-  Serial.println();
-  // Only proceed if incoming message's topic matches
-   String topiclocal = String(sistem) + "/" + getBluetoothMac();    
-  if (String(topic) == topiclocal)
+{       
+  // Only proceed if incoming message's topic matches    
+  if (String(topic) == topicStatusStr)
   {
-    Status = !Status;
-    digitalWrite(PIN_LED_R, Status);
-    mqtt.publish(topicStatus, Status ? "1" : "0");
+      Serial.print("Message arrived [");
+      Serial.print(topic);
+      Serial.print("]: ");
+      Serial.write(payload, len);
+      Serial.println();
+      Status = !Status;
+      digitalWrite(PIN_LED_R, Status);
+   // mqtt.publish(topicStatus, Status ? "1" : "0");
   }
 }
 
@@ -58,10 +58,9 @@ boolean mqttConnect()
   }
   //Serial.println(" success");
   if(lost){
-  String mensaje_init = "re-started: " + getBluetoothMac();
-  mqtt.publish(topicInit,mensaje_init.c_str());
-  String topic = String(sistem) + "/" + getBluetoothMac();  
-   mqtt.subscribe(topic.c_str());
+   String mensaje_init = "re-started: " + getBluetoothMac();
+   mqtt.publish(topicInit,mensaje_init.c_str());  
+   mqtt.subscribe(topicStatus);
    lost = false;
   }
   return mqtt.connected();
@@ -79,21 +78,21 @@ boolean reconect = false;
 
 void setup()
 {
+  Serial.begin(115200);
   initAux();
   Serial.println("Setup init");
-  initSim();
-  initMQTT();
+  initWiFi();
+ // initGps();
+ // initSim();
+ // initMQTT();
   initPas = true;
   Serial.println("Setup done");
 }
 
 int count = 0;
 unsigned long lastReconnectAttempt = 0;
-
-
-void loop()
-{
-  unsigned long currentMillis = millis();
+void logicSIM7X_GPS(){
+    unsigned long currentMillis = millis();
   if (currentMillis - lastReconnectAttempt > 5000)  {
    // checkModemStatus();
     lastReconnectAttempt = currentMillis;  
@@ -106,9 +105,9 @@ void loop()
       if (mqttConnect())
       {
         //   Serial.println("MQTT is connected");    
-        String topic = String(sistem) + "/" + getBluetoothMac();      
-        mqtt.publish(topic.c_str(), String(count).c_str());
-     
+        String topic = String(sistem) + "/" + getBluetoothMac();   
+        String mensaje = "{\"id\":"+String(count)+ getGpsData(); 
+        mqtt.publish(topic.c_str(), mensaje.c_str());     
         count++;       
       }
     }
@@ -117,5 +116,11 @@ void loop()
    }
   }
 }
-mqtt.loop();
+}
+
+
+
+void loop(){
+  //logicSIM7X_GPS();
+  //mqtt.loop();
 }

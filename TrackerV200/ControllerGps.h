@@ -17,28 +17,39 @@ void initGps(){
     SerialGps.begin(9600);
 }
 
+boolean valid = false;
 String getGpsData(){
     while (SerialGps.available() > 0){
         if (gps.encode(SerialGps.read())){
-            if (gps.location.isValid()){
+            if (gps.location.isValid() && gps.date.isValid() && gps.time.isValid() ){
                 latitude = gps.location.lat();
-                longitude = gps.location.lng();
-            }
-            if (gps.date.isValid()){
+                longitude = gps.location.lng(); 
                 date = gps.date.day();
                 month = gps.date.month();
-                year = gps.date.year();
-            }
-            if (gps.time.isValid()){
+                year = gps.date.year(); 
                 hour = gps.time.hour();
                 minute = gps.time.minute();
                 second = gps.time.second();
+                valid = true;
+            }else{
+                valid = false;  
             }
+           /* if (gps.date.isValid()){
+              
+            }
+            if (gps.time.isValid()){
+               
+            }*/
+            
         }
     }
+    String result= "\"date_time\":null,\"lat\":null,\"lon:\"null";
+    if(valid){
     date_str = String(year) + "-" + String(month) + "-" + String(date);
     time_str = String(hour) + ":" + String(minute) + ":" + String(second);
     lat_str = String(latitude, 6);
-    lng_str = String(longitude, 6);
-    return date_str + " " + time_str + " " + lat_str + " " + lng_str;
+    lng_str = String(longitude, 6);    
+    result= "\"date_time\":"+date_str + " " +time_str+",\"lat\":"+lat_str+",\"lon\":"+lng_str;    
+    }
+    return result;      
 }

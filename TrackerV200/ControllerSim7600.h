@@ -126,9 +126,7 @@ void checkModemStatus() {
 void initSim()
 {
     pinMode(MOSFET_SIM, OUTPUT);
-    digitalWrite(MOSFET_SIM, HIGH);
-    
-    Serial.begin(115200);
+    digitalWrite(MOSFET_SIM, HIGH);   
     Serial2.begin(BAUD, SERIAL_8N1, RXD2_SIMX, TXD2_SIMX);
     delay(5000);
     modem.init();  
