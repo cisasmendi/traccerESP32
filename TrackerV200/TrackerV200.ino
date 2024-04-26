@@ -5,6 +5,7 @@
 #include "ControllerAux.h"
 #include "ControllerWiFi.h"
 
+
 // MQTT details
 const char *broker = "64.226.117.238";
 const int port = 1883;
@@ -79,9 +80,10 @@ boolean reconect = false;
 void setup()
 {
   Serial.begin(115200);
-  initAux();
+  initBluetooth();
+  //initAux();
   Serial.println("Setup init");
-  initWiFi();
+  //initWiFi();
  // initGps();
  // initSim();
  // initMQTT();
@@ -123,4 +125,5 @@ void logicSIM7X_GPS(){
 void loop(){
   //logicSIM7X_GPS();
   //mqtt.loop();
+  loopBluetooth();
 }
