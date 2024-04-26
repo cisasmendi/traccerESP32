@@ -29,11 +29,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int len)
   // Only proceed if incoming message's topic matches    
   if (String(topic) == topicStatusStr)
   {
-      Serial.print("Message arrived [");
+      Serial.print(F("Message arrived ["));
       Serial.print(topic);
-      Serial.print("]: ");
+      Serial.print(F("]: "));
       Serial.write(payload, len);
-      Serial.println();
+      Serial.print(F("\n"));
       Status = !Status;
       digitalWrite(PIN_LED_R, Status);
    // mqtt.publish(topicStatus, Status ? "1" : "0");
@@ -49,12 +49,11 @@ boolean mqttConnect()
   //Serial.print("Connecting to ");
   //Serial.print(broker);
   // Connect to MQTT Broker
-   boolean status = mqtt.connect(sistem);
+  boolean status = mqtt.connect(sistem);
   // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
   if (!status)
   {
-    //Serial.println(" fail");
-    
+    //Serial.println(" fail");    
     return false;
   }
   //Serial.println(" success");
@@ -81,18 +80,18 @@ void setup()
 {
   Serial.begin(115200);
   initBluetooth();
-  //initAux();
-  Serial.println("Setup init");
-  //initWiFi();
- // initGps();
- // initSim();
- // initMQTT();
+  initAux();
+  Serial.println(F("Setup init"));
+  initWiFi("asdasd","asdasd");
+  initGps();
+  initSim();
   initPas = true;
-  Serial.println("Setup done");
+  Serial.println(F("Setup done"));
 }
 
 int count = 0;
 unsigned long lastReconnectAttempt = 0;
+
 void logicSIM7X_GPS(){
     unsigned long currentMillis = millis();
   if (currentMillis - lastReconnectAttempt > 5000)  {
@@ -119,11 +118,8 @@ void logicSIM7X_GPS(){
   }
 }
 }
-
-
-
-void loop(){
-  //logicSIM7X_GPS();
-  //mqtt.loop();
-  loopBluetooth();
+void loop(){  
+  logicSIM7X_GPS();
+  mqtt.loop();
+  loopBluetooth();  
 }

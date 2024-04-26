@@ -44,25 +44,25 @@ boolean testNetwork()
     {
         if (!modem.isGprsConnected())
         {
-            Serial.println("GPRS disconnected!");
+            Serial.println(F("GPRS disconnected!"));
             return connectGPRS();
         }
     }
     else
     {
-        Serial.println("Network disconnected");
+        Serial.println(F("Network disconnected"));
         if (modem.waitForNetwork(1000L, true))
         {
-            Serial.println("Network reconnected");
+            Serial.println(F("Network reconnected"));
             if (!modem.isGprsConnected())
             {
-                Serial.println("GPRS disconnected!");
+                Serial.println(F("GPRS disconnected!"));
                 return connectGPRS();
             }
         }
         else
         {
-            Serial.println("Network reconnection failed");
+            Serial.println(F("Network reconnection failed"));
             return false;
         }
     }
@@ -75,12 +75,12 @@ boolean connectGPRS()
     Serial.println(apn);
     if (modem.gprsConnect(apn, gprsUser, gprsPass))
     {
-        Serial.println("GPRS reconnected successfully");
+        Serial.println(F("GPRS reconnected successfully"));
         return true;
     }
     else
     {
-        Serial.println("GPRS reconnection failed");
+        Serial.println(F("GPRS reconnection failed"));
         return false;
     }
 }
@@ -89,37 +89,37 @@ boolean connectGPRS()
 void checkModemStatus() {
   // info modem
   String modemInfo = modem.getModemInfo();
-  Serial.print("Modem: ");
+  Serial.print(F("Modem: "));
   Serial.println(modemInfo);
   
   // Consultar la calidad de la señal
   int signalQuality = modem.getSignalQuality();
-  Serial.print("Signal quality: ");
+  Serial.print(F("Signal quality: "));
   Serial.println(signalQuality);
 
 
   // Consultar el nombre del operador
   String operatorName = modem.getOperator();
-  Serial.print("Operator: ");
+  Serial.print(F("Operator: "));
   Serial.println(operatorName);
 
   // Consultar el CCID de la tarjeta SIM
   String ccid = modem.getSimCCID();
-  Serial.print("SIM CCID: ");
+  Serial.print(F("SIM CCID: "));
   Serial.println(ccid);
 
   // Consultar y mostrar la dirección IP
   String ip = modem.getLocalIP();
-  Serial.print("Local IP address: ");
+  Serial.print(F("Local IP address: "));
   Serial.println(ip);
 
   float vBatt = modem.getBattVoltage() / 1000.0;
-  Serial.print("Bateri: ");
+  Serial.print(F("Bateri: "));
   Serial.println(vBatt); 
   
   // Consultar el IMEI del módem
   String imei = modem.getIMEI();
-  Serial.print("IMEI: ");
+  Serial.print(F("IMEI: "));
   Serial.println(imei);
 }
 

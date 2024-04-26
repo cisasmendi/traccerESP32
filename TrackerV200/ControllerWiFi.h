@@ -1,33 +1,23 @@
-#include "ControllerPreferences.h"
 #include <WiFi.h>
-
-void initWiFi()
-{
- 
- // saveWiFiCredentials("Cisasmendi88.4G", "Tiziana2285");
-
-  // Cargar y conectar
-  String ssid, password;
-  if (loadWiFiCredentials(ssid, password))
+void initWiFi(String ssid, String pass)
+{ 
+  Serial.println(F("Conectando a WiFi con credenciales guardadas..."));
+  delay(10);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
+  Serial.print(F("Conectando a:\t"));
+  Serial.println(ssid); 
+  // Esperar a que nos conectemos
+  while (WiFi.status() != WL_CONNECTED) 
   {
-    Serial.println("Conectando a WiFi con credenciales guardadas...");
-    WiFi.begin(ssid.c_str(), password.c_str());
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      delay(500);
-      Serial.print(".");
-    }
-
-    Serial.println("¡Conectado!");
-    Serial.print("Dirección IP: ");
-    Serial.println(WiFi.localIP());
-    // Desconectar y apagar WiFi
-    WiFi.disconnect(true);
-    Serial.println("WiFi desconectado y módulo apagado");
+    delay(200);
+  Serial.print(F('.'));
   }
-  else
-  {
-    Serial.println("No se encontraron credenciales guardadas.");
-  }
+  // Mostrar mensaje de exito y dirección IP asignada
+  Serial.println();
+  Serial.print(F("Conectado a:\t"));
+  Serial.println(WiFi.SSID()); 
+  Serial.print(F("IP address:\t"));
+  Serial.println(WiFi.localIP());
+  Serial.println(F("WiFi desconectado y módulo apagado"));  
 }
