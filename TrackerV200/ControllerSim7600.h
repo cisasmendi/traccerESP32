@@ -5,9 +5,9 @@
 #define TXD2_SIMX 17
 
 // Your GPRS credentials, if any
-const char apn[] = "igprs.claro.com.ar";
-const char gprsUser[] = "";
-const char gprsPass[] = "";
+char apn[] = "";
+char gprsUser[] = "";
+char gprsPass[] = "";
 
 // GSM details
 #include <TinyGsmClient.h>
@@ -21,16 +21,16 @@ boolean testNetwork();
 
 // verifica la comunicacion con el modem retorna true si la comunicacion es exitosa usando
 boolean testModem(){
-  //  Serial.println("\nTesting Modem Response...");
+   //Serial.println("\nTesting Modem Response...");
     unsigned long startTime = millis();
     do
     {
         if (!modem.testAT()){
             delay(1000);
-     //       Serial.println("Modem did not respond.");
+            //Serial.println("Modem did not respond.");
             return false;
         }else{
-     //       Serial.println("Modem responded.");
+            //Serial.println("Modem responded.");
             return true;          
         }
         
@@ -44,43 +44,43 @@ boolean testNetwork()
     {
         if (!modem.isGprsConnected())
         {
-            Serial.println(F("GPRS disconnected!"));
+            //Serial.println(F("GPRS disconnected!"));
             return connectGPRS();
         }
     }
     else
     {
-        Serial.println(F("Network disconnected"));
+        //Serial.println(F("Network disconnected"));
         if (modem.waitForNetwork(1000L, true))
         {
-            Serial.println(F("Network reconnected"));
+            //Serial.println(F("Network reconnected"));
             if (!modem.isGprsConnected())
             {
-                Serial.println(F("GPRS disconnected!"));
+                //Serial.println(F("GPRS disconnected!"));
                 return connectGPRS();
             }
         }
         else
         {
-            Serial.println(F("Network reconnection failed"));
+            //Serial.println(F("Network reconnection failed"));
             return false;
         }
     }
     return true;
 }
 // reconecta el GPRS
-boolean connectGPRS()
+boolean connectGPRS( )
 {
-    Serial.print(F("Connecting to "));
-    Serial.println(apn);
+    //Serial.print(F("Connecting to "));
+    //Serial.println(apn);
     if (modem.gprsConnect(apn, gprsUser, gprsPass))
     {
-        Serial.println(F("GPRS reconnected successfully"));
+        //Serial.println(F("GPRS reconnected successfully"));
         return true;
     }
     else
     {
-        Serial.println(F("GPRS reconnection failed"));
+        //Serial.println(F("GPRS reconnection failed"));
         return false;
     }
 }
@@ -89,42 +89,47 @@ boolean connectGPRS()
 void checkModemStatus() {
   // info modem
   String modemInfo = modem.getModemInfo();
-  Serial.print(F("Modem: "));
-  Serial.println(modemInfo);
+  //Serial.print(F("Modem: "));
+  //Serial.println(modemInfo);
   
   // Consultar la calidad de la señal
   int signalQuality = modem.getSignalQuality();
-  Serial.print(F("Signal quality: "));
-  Serial.println(signalQuality);
+  //Serial.print(F("Signal quality: "));
+  //Serial.println(signalQuality);
 
 
   // Consultar el nombre del operador
   String operatorName = modem.getOperator();
-  Serial.print(F("Operator: "));
-  Serial.println(operatorName);
+  //Serial.print(F("Operator: "));
+  //Serial.println(operatorName);
 
   // Consultar el CCID de la tarjeta SIM
   String ccid = modem.getSimCCID();
-  Serial.print(F("SIM CCID: "));
-  Serial.println(ccid);
+  //Serial.print(F("SIM CCID: "));
+  //Serial.println(ccid);
 
   // Consultar y mostrar la dirección IP
   String ip = modem.getLocalIP();
-  Serial.print(F("Local IP address: "));
-  Serial.println(ip);
+  //Serial.print(F("Local IP address: "));
+  //Serial.println(ip);
 
   float vBatt = modem.getBattVoltage() / 1000.0;
-  Serial.print(F("Bateri: "));
-  Serial.println(vBatt); 
+  //Serial.print(F("Bateri: "));
+  //Serial.println(vBatt); 
   
   // Consultar el IMEI del módem
   String imei = modem.getIMEI();
-  Serial.print(F("IMEI: "));
-  Serial.println(imei);
+  //Serial.print(F("IMEI: "));
+  //Serial.println(imei);
 }
 
-void initSim()
+void initSim(String apn, String gprsUser, String gprsPass)
 {
+
+    apn.toCharArray(apn, apn.length() + 1);
+    gprsUser.toCharArray(gprsUser, gprsUser.length() + 1);
+    gprsPass.toCharArray(gprsPass, gprsPass.length() + 1);
+
     pinMode(MOSFET_SIM, OUTPUT);
     digitalWrite(MOSFET_SIM, HIGH);   
     Serial2.begin(BAUD, SERIAL_8N1, RXD2_SIMX, TXD2_SIMX);

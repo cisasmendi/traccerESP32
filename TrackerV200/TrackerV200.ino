@@ -29,11 +29,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int len)
   // Only proceed if incoming message's topic matches    
   if (String(topic) == topicStatusStr)
   {
-      Serial.print(F("Message arrived ["));
-      Serial.print(topic);
-      Serial.print(F("]: "));
+      //Serial.print(F("Message arrived ["));
+      //Serial.print(topic);
+      //Serial.print(F("]: "));
       Serial.write(payload, len);
-      Serial.print(F("\n"));
+      //Serial.print(F("\n"));
       Status = !Status;
       digitalWrite(PIN_LED_R, Status);
    // mqtt.publish(topicStatus, Status ? "1" : "0");
@@ -46,17 +46,17 @@ String miTopic(){
 
 boolean mqttConnect()
 {
-  //Serial.print("Connecting to ");
-  //Serial.print(broker);
+  ////Serial.print("Connecting to ");
+  ////Serial.print(broker);
   // Connect to MQTT Broker
   boolean status = mqtt.connect(sistem);
   // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
   if (!status)
   {
-    //Serial.println(" fail");    
+    ////Serial.println(" fail");    
     return false;
   }
-  //Serial.println(" success");
+  ////Serial.println(" success");
   if(lost){
    String mensaje_init = "re-started: " + getBluetoothMac();
    mqtt.publish(topicInit,mensaje_init.c_str());  
@@ -76,17 +76,28 @@ void initMQTT()
 boolean initPas = false;
 boolean reconect = false;
 
+void getConfigApn(String &apn, String &gprsUser, String &gprsPass){
+    preferences.begin("config", true);
+    apn = preferences.getString("apn", "");
+    gprsUser = preferences.getString("gprsUser", "");
+    gprsPass = preferences.getString("gprsPass", "");
+    preferences.end();
+}
+
 void setup()
 {
   Serial.begin(115200);
   initBluetooth();
+  delay(1000);
+  String apn, gprsUser, gprsPass;
+  getConfigApn(apn, gprsUser, gprsPass);
   initAux();
-  Serial.println(F("Setup init"));
-  initWiFi("asdasd","asdasd");
+  //Serial.println(F("Setup init"));
+ // initWiFi("asdasd","asdasd");
   initGps();
-  initSim();
+  initSim(apn, gprsUser, gprsPass);
   initPas = true;
-  Serial.println(F("Setup done"));
+  //Serial.println(F("Setup done"));
 }
 
 int count = 0;
@@ -99,13 +110,13 @@ void logicSIM7X_GPS(){
     lastReconnectAttempt = currentMillis;  
   if(initPas){  
   if (testModem())  {
-    //  Serial.println("modem on");
+      //Serial.println("modem on");
     if (testNetwork())
     {
-      //   Serial.println("Network on");
+         //Serial.println("Network on");
       if (mqttConnect())
       {
-        //   Serial.println("MQTT is connected");    
+         //Serial.println("MQTT is connected");    
         String topic = String(sistem) + "/" + getBluetoothMac();   
         String mensaje = "{\"id\":"+String(count)+ getGpsData(); 
         mqtt.publish(topic.c_str(), mensaje.c_str());     
@@ -118,8 +129,9 @@ void logicSIM7X_GPS(){
   }
 }
 }
-void loop(){  
+void loop(){ 
+  loopBluetooth();
   logicSIM7X_GPS();
   mqtt.loop();
-  loopBluetooth();  
+    
 }
