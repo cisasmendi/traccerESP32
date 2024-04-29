@@ -1,5 +1,6 @@
 #include <SoftwareSerial.h>
 //https://tlfong01.blog/2020/03/22/sim7600-at-command-tutorial/
+//https://github.com/DFRobot/DFRobot_SIM7000/blob/master/examples/DFRobotSIM7000MQTT/DFRobotSIM7000MQTT.ino
 #define BAUD 115200
 #define RXD2 16
 #define TXD2 17

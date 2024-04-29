@@ -3,7 +3,7 @@
 #include <PubSubClient.h>
 #include "ControllerGps.h"
 #include "ControllerAux.h"
-#include "ControllerWiFi.h"
+//#include "ControllerWiFi.h"
 
 
 // MQTT details
@@ -82,7 +82,7 @@ void setup()
   initBluetooth();
   initAux();
   Serial.println(F("Setup init"));
-  initWiFi("asdasd","asdasd");
+ // initWiFi("ssid","pass"); // para conectar a wifi 
   initGps();
   initSim();
   initPas = true;
