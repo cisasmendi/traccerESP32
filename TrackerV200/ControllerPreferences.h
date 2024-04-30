@@ -8,22 +8,33 @@ void resetConfig(){
 }
 
 // getConfig
-String getConfig(bool &wifienable, String &ssid, String &password, String &secret, String &broker, int &port, String &topic, String &apn, String &gprsUser, String &gprsPass, bool &reset){
+String getConfig(){
     String result = "";
-    preferences.begin("config", true);
-    wifienable = preferences.getBool("wifienable",true);
-    ssid = preferences.getString("ssid1", "redlocal");
-    password = preferences.getString("password1", "redlocal");
-    secret = preferences.getString("secret", "123456789");
-    broker = preferences.getString("broker", "192.168.1.100");
-    port = preferences.getInt("port", 1883);
-    topic = preferences.getString("topic", "system");
-    apn = preferences.getString("apn", "");
-    gprsUser = preferences.getString("gprsUser", "");
-    gprsPass = preferences.getString("gprsPass", "");
-    reset = preferences.getBool("reset", false);    
-    result = "wifienable: " + String(wifienable) + " ssid: " + ssid + " password: " + password + " secret: " + secret + " broker: " + broker + " port: " + String(port) + " topic: " + topic + " apn: " + apn + " gprsUser: " + gprsUser + " gprsPass: " + gprsPass + " reset: " + String(reset);
-    preferences.end();
+    bool wifienable = preferences.getBool("wifienable", true);
+    String ssid = preferences.getString("ssid1", "redlocal");
+    String password = preferences.getString("password1", "redlocal");
+    String secret = preferences.getString("secret", "123456789");
+    String broker = preferences.getString("broker", "192.168.1.100");
+    int port = preferences.getInt("port", 1883);
+    String topic = preferences.getString("topic", "system");
+    String apn = preferences.getString("apn", "");
+    String gprsUser = preferences.getString("gprsUser", "");
+    String gprsPass = preferences.getString("gprsPass", "");
+    bool reset = preferences.getBool("reset", false);
+
+    // Construye la cadena de resultado
+    result = "wifienable: " + String(wifienable) +
+             " ssid: " + ssid +
+             " password: " + password +
+             " secret: " + secret +
+             " broker: " + broker +
+             " port: " + String(port) +
+             " topic: " + topic +
+             " apn: " + apn +
+             " gprsUser: " + gprsUser +
+             " gprsPass: " + gprsPass +
+             " reset: " + String(reset);
+             preferences.end();
     return result;
 }
 
