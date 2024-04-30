@@ -8,6 +8,7 @@
 String broker;
 String topicSistem;
 int port;
+const char* broker1 = "64.226.117.238";
 // MQTT details
 
 /*
@@ -45,18 +46,18 @@ void mqttCallback(char *topic, byte *payload, unsigned int len)
 
 boolean mqttConnect()
 {
-  ////Serial.print("Connecting to ");
-  ////Serial.print(broker);
+  Serial.print("Connecting to ");
+  Serial.print(broker);
   // Connect to MQTT Broker
   String miTopic = String(topicSistem) + "/" + getBluetoothMac();
   boolean status = mqtt.connect(miTopic.c_str());
   // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
   if (!status)
   {
-    ////Serial.println(" fail");
+    Serial.println(" fail");
     return false;
   }
-  ////Serial.println(" success");
+   Serial.println(" success");
   if (lost)
   {
     String mensaje_init = "re-started: " + getBluetoothMac();
@@ -69,10 +70,10 @@ boolean mqttConnect()
   return mqtt.connected();
 }
 
-void initMQTT(String broker, int port, TinyGsmClient &client)
+void initMQTT(String broker, int port, TinyGsmClient &cliente)
 {
-  mqtt.setClient(client);
-  mqtt.setServer(broker.c_str(), port);
+  mqtt.setClient(cliente);
+  mqtt.setServer(broker1, port);
   mqtt.setCallback(mqttCallback);
 }
 
@@ -116,13 +117,13 @@ void logicSIM7X_GPS()
     {
       if (testModem())
       {
-        // Serial.println("modem on");
+        Serial.println("modem on");
         if (testNetwork())
         {
-          // Serial.println("Network on");
+           Serial.println("Network on");
           if (mqttConnect())
           {
-            // Serial.println("MQTT is connected");
+            Serial.println("MQTT is connected");
             String miTopic = String(topicSistem) + "/" + getBluetoothMac();
             String mensaje = "{\"id\":" + String(count) + getGpsData();
             mqtt.publish(miTopic.c_str(), mensaje.c_str());

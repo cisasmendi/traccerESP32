@@ -48,10 +48,11 @@ String handleATCommands(const String &command) {
     response += "AT - Test command\n";
     response += "AT+MAC - Get the Bluetooth MAC address\n";
     response += "AT+RESET - Reset all settings and restart device\n";
+    response += "AT+REBOOT - Reboot \n";
     response += "AT+OPEN [key] - Open lock with key\n";
     response += "AT+SETKEY [key] - Set a new key for lock\n";
-    response += "AT+SETWIFI [ssid],[password] - Set WiFi settings\n";
-    response += "AT+GETWIFI - Get current WiFi settings\n";
+   // response += "AT+SETWIFI [ssid],[password] - Set WiFi settings\n";
+   // response += "AT+GETWIFI - Get current WiFi settings\n";
     response += "AT+SETMQTT [broker],[port],[topic] - Set MQTT settings\n";
     response += "AT+GETMQTT - Get current MQTT settings\n";
     response += "AT+SETAPN [apn],[user],[pass] - Set APN settings\n";
@@ -185,6 +186,8 @@ String handleCommands(const String& command) {
         response = "All settings have been reset.";
         delay(5000);
         restartDevice();  // Supone una función que reinicia el dispositivo
+    }else if (command == "AT+REBOOT"){
+        restartDevice();
     }
     else if (command.startsWith("AT+")) {
         response = handleATCommands(command);  // Supone una función que maneja otros comandos AT+
