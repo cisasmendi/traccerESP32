@@ -1,5 +1,6 @@
 #include "BluetoothSerial.h"
 #include "ControllerPreferences.h"
+#include "ControllerMotorDC.h"
 
 BluetoothSerial SerialBT;
 
@@ -7,6 +8,7 @@ const int LEDpin = 2;
 
 void initBluetooth()
 {
+  initMotor();
   SerialBT.begin("Lock");
   pinMode(LEDpin, OUTPUT);
   digitalWrite(LEDpin, LOW);
@@ -63,13 +65,14 @@ String handleATCommands(const String &command) {
   }
 
   if (command.startsWith("AT+OPEN ")) {
-    String key = command.substring(10);
+    String key = command.substring(8);
     key.trim();
     String secret;
     getKeyLock(secret);
     if (key == secret) {
       digitalWrite(LEDpin, HIGH);
       response = "Lock opened successfully!";
+        // open();
     } else {
       digitalWrite(LEDpin, LOW);
       response = "Invalid key!";
@@ -83,6 +86,7 @@ String handleATCommands(const String &command) {
     if (isValidKey(newKey)) {
       setKeyLock(newKey);
       response = "Key updated successfully!";
+   
     } else {
       response = "Invalid key. Must be numeric and 9 digits long.";
     }

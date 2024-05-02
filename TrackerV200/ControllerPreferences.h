@@ -9,8 +9,9 @@ void resetConfig(){
 
 // getConfig
 String getConfig(){
+    preferences.begin("config", true);  
     String result = "";
-    bool wifienable = preferences.getBool("wifienable", true);
+  //  bool wifienable = preferences.getBool("wifienable", true);
     String ssid = preferences.getString("ssid1", "redlocal");
     String password = preferences.getString("password1", "redlocal");
     String secret = preferences.getString("secret", "123456789");
@@ -20,10 +21,10 @@ String getConfig(){
     String apn = preferences.getString("apn", "");
     String gprsUser = preferences.getString("gprsUser", "");
     String gprsPass = preferences.getString("gprsPass", "");
-    bool reset = preferences.getBool("reset", false);
+  //  bool reset = preferences.getBool("reset", false);
 
     // Construye la cadena de resultado
-    result = "wifienable: " + String(wifienable) +
+    result = 
              " ssid: " + ssid +
              " password: " + password +
              " secret: " + secret +
@@ -32,8 +33,9 @@ String getConfig(){
              " topic: " + topic +
              " apn: " + apn +
              " gprsUser: " + gprsUser +
-             " gprsPass: " + gprsPass +
-             " reset: " + String(reset);
+             " gprsPass: " + gprsPass ;
+            // " reset: " + String(reset);
+            //"wifienable: " + String(wifienable) +
              preferences.end();
     return result;
 }

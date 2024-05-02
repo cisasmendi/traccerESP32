@@ -3,12 +3,13 @@
 #include <PubSubClient.h>
 #include "ControllerGps.h"
 #include "ControllerAux.h"
+
 // #include "ControllerWiFi.h"
 
 String broker;
 String topicSistem;
 int port;
-const char* broker1 = "64.226.117.238";
+char *broker1 = nullptr;
 // MQTT details
 
 /*
@@ -23,7 +24,7 @@ const char *topicLed = topicStr.c_str();
 const char *topicInit = topicInitStr.c_str();
 const char *topicStatus = topicStatusStr.c_str();
 */
-String topicStatusStr="";
+String topicStatusStr = "";
 PubSubClient mqtt;
 int Status = LOW;
 boolean lost = true;
@@ -33,20 +34,30 @@ void mqttCallback(char *topic, byte *payload, unsigned int len)
   // Only proceed if incoming message's topic matches
   if (String(topic) == topicStatusStr)
   {
-    // Serial.print(F("Message arrived ["));
-    // Serial.print(topic);
-    // Serial.print(F("]: "));
-    Serial.write(payload, len);
-    // Serial.print(F("\n"));
-    Status = !Status;
-    digitalWrite(PIN_LED_R, Status);
-    // mqtt.publish(topicStatus, Status ? "1" : "0");
+    String content = "";
+    for (size_t i = 0; i < len; i++)
+    {
+        content.concat((char)payload[i]);
+    }
+    
+    // analiza el mensaje si es un comando AT
+    if (content.startsWith("AT"))
+    {        
+      String response = handleCommands(content); 
+      String  topicResp= topicStatusStr+"/AT_RESP";
+      Serial.print(F("resposne to: "));
+      Serial.print(response);
+      mqtt.publish(topicResp.c_str(), response.c_str());
+      
+      
+      return;
+    }
   }
 }
 
 boolean mqttConnect()
 {
-  Serial.print("Connecting to ");
+  Serial.print(F("Connecting to: "));
   Serial.print(broker);
   // Connect to MQTT Broker
   String miTopic = String(topicSistem) + "/" + getBluetoothMac();
@@ -54,10 +65,10 @@ boolean mqttConnect()
   // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
   if (!status)
   {
-    Serial.println(" fail");
+    Serial.println(F(" fail"));
     return false;
   }
-   Serial.println(" success");
+  Serial.println(F(" success"));
   if (lost)
   {
     String mensaje_init = "re-started: " + getBluetoothMac();
@@ -72,6 +83,15 @@ boolean mqttConnect()
 
 void initMQTT(String broker, int port, TinyGsmClient &cliente)
 {
+
+  if (broker1 != nullptr)
+  {
+    delete[] broker1;
+  }
+  // Asignar memoria para broker1 incluyendo espacio para el carácter nulo
+  broker1 = new char[broker.length() + 1];
+  // Copiar el contenido del String al char*
+  strcpy(broker1, broker.c_str());
   mqtt.setClient(cliente);
   mqtt.setServer(broker1, port);
   mqtt.setCallback(mqttCallback);
@@ -86,7 +106,7 @@ void setup()
   String apn;
   String gprsUser;
   String gprsPass;
-  
+
   Serial.begin(115200);
   initBluetooth();
   delay(1000);
@@ -95,12 +115,12 @@ void setup()
   getConfigMqtt(broker, port, topicSistem);
   initMQTT(broker, port, client);
   initAux();
-  // Serial.println(F("Setup init"));
+  Serial.println(F("Setup init"));
   // initWiFi("asdasd","asdasd");
   initGps();
   initSim(apn, gprsUser, gprsPass);
   initPas = true;
-  // Serial.println(F("Setup done"));
+  Serial.println(F("Setup done"));
 }
 
 int count = 0;
@@ -120,7 +140,7 @@ void logicSIM7X_GPS()
         Serial.println("modem on");
         if (testNetwork())
         {
-           Serial.println("Network on");
+          Serial.println("Network on");
           if (mqttConnect())
           {
             Serial.println("MQTT is connected");
