@@ -16,10 +16,10 @@ void initMotor()
 
 // fincion que abre la cerradura hata que el final de carrera abierto se active
 
-void open()
+void openLock()
 {
     digitalWrite(PIN_MOTOR_ABRE, HIGH);
-    while (digitalRead(FIN_ABIERTO) == 0)
+    while (digitalRead(FIN_ABIERTO) == 1)
     {
         delay(50);
     }
@@ -28,12 +28,19 @@ void open()
 
 // fincion que cierra la cerradura hata que el final de carrera cerrado se active
 
-void close()
+void closeLock()
 {
     digitalWrite(PIN_MOTOR_CIERRA, HIGH);
-    while (digitalRead(FIN_CERRADO) == 0)
+    while (digitalRead(FIN_CERRADO) == 1)
     {
         delay(50);
     }
     digitalWrite(PIN_MOTOR_CIERRA, LOW);
+}
+
+void toggleLock()
+{
+    openLock();  // Abre hasta el final de carrera abierto
+    delay(1000); // Retraso opcional
+    closeLock(); // Cierra hasta el final de carrera cerrado
 }

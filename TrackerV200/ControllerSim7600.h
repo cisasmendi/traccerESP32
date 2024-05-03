@@ -140,9 +140,10 @@ void initSim(String apn, String gprsUser, String gprsPass)
     Serial2.begin(BAUD, SERIAL_8N1, RXD2_SIMX, TXD2_SIMX);
     delay(5000);
     modem.init();
-    if (testModem())
+    testModem();
+   /* if (testModem())
     {
-        // checkModemStatus();
+        checkModemStatus();
         delay(1000);
-    }
+    }*/
 }

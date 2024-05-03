@@ -72,10 +72,11 @@ String handleATCommands(const String &command) {
     if (key == secret) {
       digitalWrite(LEDpin, HIGH);
       response = "Lock opened successfully!";
-        // open();
+      toggleLock();
     } else {
       digitalWrite(LEDpin, LOW);
       response = "Invalid key!";
+      closeLock();
     }
     return response;
   }
