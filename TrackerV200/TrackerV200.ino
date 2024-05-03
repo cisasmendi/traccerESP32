@@ -158,6 +158,7 @@ void logicSIM7X_GPS()
     }
   }
 }
+
 void loop()
 {
   loopBluetooth();
