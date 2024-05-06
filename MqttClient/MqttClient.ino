@@ -199,7 +199,7 @@ void setVar(){
   pinMode(PIN_MOTOR_ABRE, OUTPUT);
   pinMode(PIN_MOTOR_CIERRA, OUTPUT);
   pinMode(MOSFET_SIM, OUTPUT);
-  pinMode(ALARM, OUTPUT);
+  pinMode(PIN_SONIDO, OUTPUT);
   pinMode(ON_OFF_GPS, OUTPUT);
   pinMode(PIN_SENSOR_HALL, INPUT); // Configurar el pin del sensor de efecto Hall como entrada
   pinMode(FIN_ABIERTO, INPUT);

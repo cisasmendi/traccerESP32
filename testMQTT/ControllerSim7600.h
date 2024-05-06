@@ -64,34 +64,30 @@ bool sendATCommand(const String& command, const String& expectedResponse, int at
 
 bool setupAPN(const String &apn, const String &username, const String &password)
 {   
-  if (username.length() > 0 && password.length() > 0){  
-    
-    sendATCommand("AT+CGAUTH=1,1,\"" + username + "\",\"" + password + "\"", "OK", 1, 50);  
-     
-  } 
-  if (sendATCommand("AT+CGDCONT=1,\"IP\",\"" + apn + "\"", "OK", 1, 50)) {   
-    
-  } 
-  if(sendATCommand("AT+CGACT=1,1","OK", 10, 1000)){
-     return true;
-  }      
+  if (username.length() > 0 && password.length() > 0){      
+    sendATCommand("AT+CGAUTH=1,1,\"" + username + "\",\"" + password + "\"", "OK", 1, 50);      
+  }else{
+     if (sendATCommand("AT+CGDCONT=1,\"IP\",\"" + apn + "\"", "OK", 1, 50)) {  
+        } 
+     if(sendATCommand("AT+CGACT=1,1","OK", 10, 1000)){
+        return true;
+     }   
+  }     
   return false;
 }
 
 
 bool connectToServer(const String &clientId, const String &server, int port)
 {
-  Serial2.println("ATE0");
+ // Serial2.println("ATE0");
   delay(20);
   Serial2.println("AT+CMQTTSTART");
   delay(20);
   Serial2.println("AT+CMQTTACCQ=0,\"" + clientId + "\"");
   delay(20);
-  Serial2.println("AT+CMQTTCONNECT=0,\"tcp://" + server + ":" + String(port) + "\",90,1");
-  
+  Serial2.println("AT+CMQTTCONNECT=0,\"tcp://" + server + ":" + String(port) + "\",90,1");  
   return true;
 }
-/*
 String getIMEI(){ 
  sendATCommand("AT+SIMEI?","OK",1, 50 , true);
 }
@@ -108,7 +104,7 @@ bool subscribeToTopic(const String &topic)
   Serial2.println("HAII");
   return true;
 }
-
+/*
 void publishMessage(const String &topic, const String &message)
 {
   int topicLength = topic.length();
@@ -131,18 +127,20 @@ void initSim(String apn, String gprsUser, String gprsPass)
     pinMode(MOSFET_SIM, OUTPUT);
     digitalWrite(MOSFET_SIM, HIGH); 
     Serial2.begin(BAUD, SERIAL_8N1, RXD2_SIMX, TXD2_SIMX);    
-    if (!sendATCommand("AT", "OK", 10, 5000)) {
-        Serial.println("Modem not responding");
+    if (sendATCommand("AT", "OK", 10, 5000)) {
+        Serial.println("Modem ok");
         //return;
     }
-  //  getIMEI();
+    getIMEI();
     if(!setupAPN(apn,gprsUser,gprsPass)){
-      Serial.println("Apn no connect");
+      Serial.println("Apn ok");
     } 
       
-    if(!connectToServer("asdalkjl1jl21", "64.226.117.238", 1883)){
-      Serial.println("MQTT no connect");
+    if(!connectToServer("elementz/123", "64.226.117.238", 1883)){
+      Serial.println("MQTT ok");
+      subscribeToTopic("led/subscribe");
     }
+    
     /*else{
       
       subscribeToTopic("test/test");
@@ -155,9 +153,9 @@ void initSim(String apn, String gprsUser, String gprsPass)
 
 int cont=0;
 void simloop(){ 
-  if(initSucess){
+  if(initSucess){    
    if(sendATCommand("AT", "OK", 1, 50)){
-      if(sendATCommand("AT+CMQTTCONNECT=?", "OK", 1, 50)){
+      if(sendATCommand("AT+CMQTTCONNECT?", "OK", 1, 50)){
        Serial.println("MQTT OK");    
     //   publishMessage("test/qw",String(cont++));
       }else{
@@ -165,6 +163,5 @@ void simloop(){
       }
    }    
    delay(5000);
-
   }
 }

@@ -1,10 +1,10 @@
 #define ALARM 18     
 #define BUZZER_CHANNEL 0
 
-ToneESP32 buzzer(ALARM, BUZZER_CHANNEL);
+ToneESP32 buzzer(PIN_SONIDO, BUZZER_CHANNEL);
 
 void setup() {
-  pinMode(ALARM, OUTPUT);  
+  pinMode(PIN_SONIDO, OUTPUT);  
 }
 
  // delay(vel); // Esperar medio segundo

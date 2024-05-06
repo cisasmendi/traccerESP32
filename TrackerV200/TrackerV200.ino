@@ -1,3 +1,9 @@
+#include <Arduino.h>
+// Variables para el manejo de las tareas
+TaskHandle_t Task1;
+//TaskHandle_t Task2;
+
+
 #include "ControllerSim7600.h"
 #include "ControllerBluetooth.h"
 #include <PubSubClient.h>
@@ -47,9 +53,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len)
       String  topicResp= topicStatusStr+"/AT_RESP";
       Serial.print(F("resposne to: "));
       Serial.print(response);
-      mqtt.publish(topicResp.c_str(), response.c_str());
-      
-      
+      mqtt.publish(topicResp.c_str(), response.c_str());     
       return;
     }
   }
@@ -102,6 +106,8 @@ boolean reconect = false;
 
 void setup()
 {
+  xTaskCreatePinnedToCore(Task1code, "Task1", 10000, NULL, 1, &Task1, 1); // Tarea para el Core 0
+//  xTaskCreatePinnedToCore(Task2code, "Task2", 10000, NULL, 1, &Task2, 1); // Tarea para el Core 1
 
   String apn;
   String gprsUser;
@@ -129,7 +135,7 @@ unsigned long lastReconnectAttempt = 0;
 void logicSIM7X_GPS()
 {
   unsigned long currentMillis = millis();
-  if (currentMillis - lastReconnectAttempt > 5000)
+  if (currentMillis - lastReconnectAttempt > 30000)
   {
     // checkModemStatus();
     lastReconnectAttempt = currentMillis;
@@ -159,9 +165,17 @@ void logicSIM7X_GPS()
   }
 }
 
+void Task1code(void * parameter) {
+  for (;;) {
+    loopBluetooth();   
+  }
+}
+
+
 void loop()
 {
-  loopBluetooth();
+  //loopBluetooth();
   logicSIM7X_GPS();
   mqtt.loop();
 }
+

@@ -15,7 +15,7 @@
 // config buzzer
 #define ALARM 18
 #define BUZZER_CHANNEL 0
-ToneESP32 buzzer(ALARM, BUZZER_CHANNEL);
+ToneESP32 buzzer(PIN_SONIDO, BUZZER_CHANNEL);
 
 // config enabler SIM7600 and GPS
 #define MOSFET_SIM 19
@@ -112,7 +112,7 @@ void setup()
   pinMode(PIN_MOTOR_ABRE, OUTPUT);
   pinMode(PIN_MOTOR_CIERRA, OUTPUT);
   pinMode(MOSFET_SIM, OUTPUT);
-  pinMode(ALARM, OUTPUT);
+  pinMode(PIN_SONIDO, OUTPUT);
   pinMode(ON_OFF_GPS, OUTPUT);
   pinMode(PIN_SENSOR_HALL, INPUT); // Configurar el pin del sensor de efecto Hall como entrada
   pinMode(FIN_ABIERTO, INPUT);     // Configurar el pin del switch como entrada

@@ -40,14 +40,13 @@ void loop()
 
 bool testModemResponse()
 {
-  simSerial.println("AT");
-  
+  simSerial.println("AT");  
   return waitForResponse("OK", 5000); // Espera hasta 5 segundos por la respuesta "OK"
 }
 
 bool testConect()
 {
-  simSerial.println("AT+CMQTTCONNECT=?");
+  simSerial.println("AT+CMQTTCONNECT?");
   return waitForResponse("OK", 5000); // Espera hasta 5 segundos por la respuesta "OK"
 }
 
