@@ -4,46 +4,48 @@
 
 ToneESP32 buzzer(PIN_SONIDO, BUZZER_CHANNEL);
 
-void beep(int note, int duree)
-{
-  buzzer.tone(note, duree);
-  buzzer.noTone();
-  delay(duree * 0.25);
-}
 
 void melodyOK()
 {
-  beep(NOTE_G4, 100);
-  beep(NOTE_E5, 200);
+  buzzer.tone(NOTE_C4, 100); 
+  buzzer.tone(NOTE_E5, 200);
 }
 
 void melodyError()
 {
-  beep(NOTE_C3, 300);
+  buzzer.tone(NOTE_C3, 300);
   delay(50);
-  beep(NOTE_C3, 300);
+  buzzer.tone(NOTE_C3, 300); 
 }
 
 void melodyConnect()
 {
-  beep(NOTE_C4, 200);
+  buzzer.tone(NOTE_C4, 200);
   delay(50);
-  beep(NOTE_E4, 200);
+  buzzer.tone(NOTE_E4, 200);
   delay(50);
-  beep(NOTE_G4, 200);
+  buzzer.tone(NOTE_G4, 200);
 }
 
 void testSound()
 {
   melodyOK();
+  delay(3000);
   melodyError();
+  delay(3000);
   melodyConnect();
+}
+
+void alarm()
+{ 
+  buzzer.tone(NOTE_C3, 300);
+  buzzer.tone(NOTE_C4, 100);  
+  buzzer.tone(NOTE_C3, 300);
+  buzzer.tone(NOTE_C4, 100);
 }
 
 void initSound()
 {
   pinMode(PIN_SONIDO, OUTPUT);
-  testSound();
+  melodyConnect();
 }
-
-
