@@ -5,14 +5,14 @@
 
 
 #define PIN_LED_R 26
-#define MOSFET_SIM 19
 #define ON_OFF_GPS 22
 #define RX_GPS 14
 #define TX_GPS 12
+
 #define vel 200
 
-const char* ssid = "Cisasmendi88.4G"; //ssid of your wifi
-const char* password = "Tiziana2285"; //password of your wifi
+const char* ssid = "DTIC"; //ssid of your wifi
+const char* password = "DTIC1307"; //password of your wifi
 TinyGPSPlus gps; 
 
 SoftwareSerial ss(RX_GPS, TX_GPS);
@@ -24,12 +24,9 @@ int pm;
 WiFiServer server(80);
 
 void setup(){  
- pinMode(PIN_LED_R, OUTPUT);
- pinMode(MOSFET_SIM, OUTPUT);   
+ pinMode(PIN_LED_R, OUTPUT);   
  pinMode(ON_OFF_GPS,OUTPUT);
- digitalWrite(MOSFET_SIM, HIGH);
  digitalWrite(ON_OFF_GPS, HIGH);
-
   Serial.begin(115200);
   ss.begin(9600);
   Serial.println();

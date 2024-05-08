@@ -47,5 +47,5 @@ void alarm()
 void initSound()
 {
   pinMode(PIN_SONIDO, OUTPUT);
-  melodyConnect();
+  melodyOK();
 }

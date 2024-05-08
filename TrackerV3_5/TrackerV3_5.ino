@@ -67,7 +67,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   void sendPosition()
   {
     String miTopic = String(topicSistem) + "/" + getBluetoothMac();
-    String mensaje = "{\"id\":" + String(count) + getGpsData();
+    String mensaje = "{\"id\":" + String(count)+","+ getGpsData()+"}";
     mqtt.publish(miTopic.c_str(), mensaje.c_str());
     count++;
   }
@@ -185,7 +185,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   {
     for (;;)
     {
-      Serial.print(F("status alarm: "));
+      //Serial.print(F("status alarm: "));
       Serial.println(alarmStatus);
       if(alarmStatus)
          runAlarm();
@@ -237,9 +237,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
         transmite = false;      // Detener transmisión
       }
     }
-    Serial.print(F("status trans: "));
+     // Serial.print(F("status trans: "));
       Serial.println(openTransmission);
-
     if (transmite || openTransmission)    
       secuenceTransmission();    
     else    

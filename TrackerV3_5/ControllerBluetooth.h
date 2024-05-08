@@ -14,10 +14,10 @@ void initBluetooth(int ON_OFF_GPS1,int MOSFET_SIM1)
   ON_OFF_GPS_local = ON_OFF_GPS1;
   MOSFET_SIM_local = MOSFET_SIM1;
   initMotor();
-
   SerialBT.begin("Lock");
   pinMode(LEDpin, OUTPUT);
   digitalWrite(LEDpin, LOW);
+  
   initSound();
 }
 
