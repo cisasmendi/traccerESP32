@@ -25,12 +25,20 @@ boolean openTransmission = false;
 int count = 0;
 unsigned long lastReconnectAttempt = 0;
 
-void mqttCallback(char *topic, byte *payload, unsigned int len) {
+void mqttCallback(char *topic, byte *payload, unsigned int len) { 
+       
     if (strcmp(topic, topicStatusStr.c_str()) == 0) {
         // Creamos un buffer para el contenido que incluya espacio para el carácter nulo
         char content[len + 1];
         memcpy(content, payload, len);
         content[len] = '\0'; // Asegurar el carácter nulo al final para formar una cadena C válida
+
+        // Imprimir los valores de depuración
+       
+        Serial.print(F("Content: "));
+        Serial.println(content);
+        Serial.print(F("Length: "));
+        Serial.println(len);
 
         // Preparar el topic de respuesta
         String topicResp = String(topicStatusStr) + "/AT_RESP";
@@ -38,24 +46,33 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
         // Procesar diferentes tipos de mensajes
         if (strncmp(content, "AT", 2) == 0) {
             String response = handleCommands(content);
-            Serial.print(F("Response to: "));
+            Serial.print(F("Response to AT command: "));
             Serial.println(response);
             mqtt.publish(topicResp.c_str(), response.c_str());
         } else if (strcmp(content, "alarm:1") == 0) {
             alarmStatus = true;
+            Serial.println(F("Alarm status set to ON"));
             mqtt.publish(topicResp.c_str(), "alarm on resp");
         } else if (strcmp(content, "alarm:0") == 0) {
             alarmStatus = false;
+            Serial.println(F("Alarm status set to OFF"));
             mqtt.publish(topicResp.c_str(), "alarm off resp");
         } else if (strcmp(content, "transm:1") == 0) {
             openTransmission = true;
+            Serial.println(F("Transmission set to ON"));
             mqtt.publish(topicResp.c_str(), "transm on resp");
         } else if (strcmp(content, "transm:0") == 0) {
             openTransmission = false;
+            Serial.println(F("Transmission set to OFF"));
             mqtt.publish(topicResp.c_str(), "transm off resp");
+        } else {
+            Serial.println(F("Unrecognized command received"));
         }
+    } else {
+        Serial.println(F("Received message on an unexpected topic"));
     }
 }
+
 
   void sendReconect()
   {
@@ -67,7 +84,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   void sendPosition()
   {
     String miTopic = String(topicSistem) + "/" + getBluetoothMac();
-    String mensaje = "{\"id\":" + String(count) + getGpsData();
+    String mensaje = "{\"id\":" + String(count) + getGpsData()+"}";
     mqtt.publish(miTopic.c_str(), mensaje.c_str());
     count++;
   }
@@ -75,34 +92,36 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   void sendClose()
   {
     count = 0;
-    String mensaje_close = "close: " + getBluetoothMac() + "{\"id\":" + String(count) + getGpsData();
+    String mensaje_close = "close: " + getBluetoothMac() + "{\"id\":" + String(count) + getGpsData()+"}";
     String topicInit = String(topicSistem) + "/close";
     mqtt.publish(topicInit.c_str(), mensaje_close.c_str());
   }
 
-  boolean mqttConnect()
-  {
+ boolean mqttConnect() {
+    if (mqtt.connected())
+        return true;
+
     Serial.print(F("Connecting to: "));
-    Serial.print(broker);
-    // Connect to MQTT Broker
-    String miTopic = String(topicSistem) + "/" + getBluetoothMac();
+    Serial.println(broker);
+
+    String miTopic = String(topicSistem) + "/" + getBluetoothMac(); 
     boolean status = mqtt.connect(miTopic.c_str());
-    // boolean status = mqtt.connect("GsmClientName", "mqtt_user", "mqtt_pass");
-    if (!status)
-    {
-    //  Serial.println(F(" fail"));
-      return false;
-    }
-  //  Serial.println(F(" success"));
-    if (lost)
-    {
-      sendReconect();
-      topicStatusStr = String(topicSistem) + "/" + getBluetoothMac() + "/st";
-      mqtt.subscribe(topicStatusStr.c_str());
-      lost = false;
+    if (status) {
+        Serial.println(F("Connected to MQTT broker"));
+        //if (lost) {
+            sendReconect();
+            topicStatusStr = String(topicSistem) + "/" + getBluetoothMac() + "/st";
+            mqtt.subscribe(topicStatusStr.c_str());
+            mqtt.setCallback(mqttCallback);
+            Serial.print(F("Subscribed to topic: "));
+            Serial.println(topicStatusStr);
+            lost = false;
+       // }
+    } else {
+        Serial.println(F("Failed to connect to MQTT broker"));
     }
     return mqtt.connected();
-  }
+}
 
   void initMQTT(String broker, int port, TinyGsmClient &cliente)
   {
@@ -132,12 +151,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     initBluetooth(ON_OFF_GPS, MOSFET_SIM);
     delay(1000);
     getConfigApn(apn, gprsUser, gprsPass);
-    getConfigMqtt(broker, port, topicSistem);
-    initMQTT(broker, port, client);
-
+    getConfigMqtt(broker, port, topicSistem);    
     Serial.println(F("Setup init"));
     initGps();
     initSim(apn, gprsUser, gprsPass);
+    initMQTT(broker, port, client);
     initPas = true;
     Serial.println(F("Setup done"));
   }
@@ -185,7 +203,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   {
     for (;;)
     {
-      Serial.print(F("status alarm: "));
+     // Serial.print(F("status alarm: "));
       Serial.println(alarmStatus);
       if(alarmStatus)
          runAlarm();
@@ -237,8 +255,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
         transmite = false;      // Detener transmisión
       }
     }
-    Serial.print(F("status trans: "));
-      Serial.println(openTransmission);
+   // Serial.print(F("status trans: "));
+    Serial.println(openTransmission);
 
     if (transmite || openTransmission)    
       secuenceTransmission();    
